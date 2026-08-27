@@ -1,12 +1,17 @@
 import express from 'express'
 import pool from './config/db.js'
 import userRoute from './routers/users.route.js'
-
+import authRoute from './routers/auth.routes.js'
 const app = express()
 
 app.use(express.json())
 
 app.use("/users", userRoute)
+
+
+app.use("/api/auth",authRoute)
+
+
 
 async function startServer() {
     try {
