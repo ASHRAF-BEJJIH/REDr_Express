@@ -1,15 +1,20 @@
 
-class UserRepository {
+export default class UserRepository {
     constructor(db) {
         this.db = db
+    }
+    async getAllUsers() {
+        const [rows] = await this.db.query("SELECT * FROM users");
+        return rows;
     }
     async getUserById(id) {
         const [rows] = await this.db.query("SELECT * FROM users WHERE id = ?", [id]);
         return rows[0];
     }
-    async getAllUsers() {
-        const [rows] = await this.db.query("SELECT * FROM users");
-        return rows;
+    async getUserByEmail(email) {
+        const [rows] = await this.db.query("SELECT * FROM users WHERE email = ?", [email]);
+        
+        return rows[0];
     }
 
     async createUser(user) {
