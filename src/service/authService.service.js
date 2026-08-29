@@ -5,7 +5,7 @@ export default class AuthService {
     }
 
     async register({ name, email, password }) {
-
+        // const existingUser = await 
     }
     async login({ email, password }) {
         console.log("Login called");
