@@ -1,26 +1,10 @@
+import { BaseRepository } from "../core/baseRepository.js";
 
-export default class UserRepository {
+export default class UserRepository extends BaseRepository {
     constructor(db) {
-        this.db = db
+        super(db, "users")
     }
-    async getAllUsers() {
-        const [rows] = await this.db.query("SELECT * FROM users");
-        return rows;
+    async findByEmail(email) {
+        return this.findOne({ email })
     }
-    async getUserById(id) {
-        const [rows] = await this.db.query("SELECT * FROM users WHERE id = ?", [id]);
-        return rows[0];
-    }
-    async getUserByEmail(email) {
-        const [rows] = await this.db.query("SELECT * FROM users WHERE email = ?", [email]);
-        
-        return rows[0];
-    }
-
-    async createUser(user) {
-        const { name, email, password } = user;
-        const [result] = await this.db.query("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, password]);
-        return result.insertId;
-    }
-
 }

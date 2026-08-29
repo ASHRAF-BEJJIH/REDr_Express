@@ -1,7 +1,8 @@
+import { BaseRepository } from "../core/baseRepository.js";
 
-export default class CarRepository {
+export default class CarRepository extends BaseRepository {
     constructor(db) {
-        this.db = db;
+        super(db,"cars")
     }
 
     async getCars() {

@@ -1,13 +1,8 @@
+import { BaseRepository } from "../core/baseRepository.js";
 
 
-class AdminRepository {
+export class AdminRepository extends BaseRepository{
     constructor(db) {
-        this.db = db
-    }
-    async getAdminById(){
-        
-    }
-    async getAllAdmins() {
-
+        super(db,"")
     }
 }
