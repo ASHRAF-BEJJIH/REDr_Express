@@ -9,7 +9,8 @@ export default class AuthService {
     }
     async login({ email, password }) {
         console.log("Login called");
-        const user = await this.userRepository.getUserByEmail(email);
+        const user = await this.userRepository.findByEmail(email);
+        console.log(user)
         if (!user) {
             console.log("User not found");
         }
