@@ -5,6 +5,6 @@ export default class UserRepository extends BaseRepository {
         super(db, "users")
     }
     async findByEmail(email) {
-        return this.findOne({ email })
+        return this.findOneBy({ email })
     }
 }

@@ -1,16 +1,23 @@
+import { QueryBuilder } from "./QueryBuilder";
+
 export class BaseRepository {
     constructor(db, tableName) {
         this.db = db;
         this.tableName = tableName;
 
     }
-
+    _query() {
+        return new QueryBuilder().from(this.tableName);
+    }
     async findAll({ where = {}, orderBy = null, limit = null, offset = null } = {}) {
+        const { sql, params } = this._query().select(["*"]).where(where).orderBy()
+        
         const [rows] = await this.db.query(`SELECT * FROM ${this.tableName}`);
         return rows;
     }
 
     async findById(id) {
+
         const [rows] = await this.db.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
         return rows[0] ?? 0
     }
@@ -46,7 +53,7 @@ export class BaseRepository {
         return result && result.affectedRows > 0
     }
 
-    async deleteWhere(criteria) {}
+    async deleteWhere(criteria) { }
 
 
     async existsById(id) {

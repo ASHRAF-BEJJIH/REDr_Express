@@ -15,6 +15,5 @@ export default class CarRepository extends BaseRepository {
     }
 
     async createCar(car) {
-
     }
 }
