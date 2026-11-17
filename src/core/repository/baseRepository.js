@@ -1,23 +1,33 @@
-import { QueryBuilder } from "./QueryBuilder";
+import { QueryBuilder } from "../queryBuilder/builders/queryBuilder.js";
 
 export class BaseRepository {
     constructor(db, tableName) {
         this.db = db;
         this.tableName = tableName;
-
+    
     }
     _query() {
         return new QueryBuilder().from(this.tableName);
     }
     async findAll({ where = {}, orderBy = null, limit = null, offset = null } = {}) {
-        const { sql, params } = this._query().select(["*"]).where(where).orderBy()
-        
-        const [rows] = await this.db.query(`SELECT * FROM ${this.tableName}`);
+        const { sql, params } = this._query().select(["*"]).where(where)
+            .orderBy(orderBy).limit(limit).offset(offset).build()
+
+        const [rows] = await this.db.query(sql, params);
         return rows;
     }
 
     async findById(id) {
+        // const { sql, params } = this._query().where({
+        //     where:
+        //         builder => builder.)
+        const sql = `SELECT * FROM ${this.tableName} WHERE id = ? AND `
+        new QueryBuilder().select(["*"]).from(this.tableName).where({ id }).build()
 
+
+
+        this._query().select(["*"]).where("status", "=", "available").where("age", ">", 12).where("price", "=", 120)
+        this._query().select(["*"]).where({ status: "available", age: { operator: ">", value: 12 } }).orWhere({ price: 120 })
         const [rows] = await this.db.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
         return rows[0] ?? 0
     }

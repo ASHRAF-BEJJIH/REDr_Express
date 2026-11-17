@@ -1,7 +1,7 @@
-import { ComparisonOperator } from "./constants/comparisonOperator.js";
-import { LogicalOperator } from "./constants/logicalOperator.js";
-import { SortDirection } from "./constants/sortDirection.js";
-import { validateConditions, validateLimit, validateOffset, validateOperator, validateOrderBy, validateSelect, validateTable } from "./validators/queryBuilderValidator.js";
+import { ComparisonOperator } from "../constants/comparisonOperator.js";
+import { LogicalOperator } from "../constants/logicalOperator.js";
+import { SortDirection } from "../constants/sortDirection.js";
+import { validateConditions, validateLimit, validateOffset, validateOperator, validateOrderBy, validateSelect, validateTable } from "../validators/queryBuilderValidator.js";
 
 const TypeCondition = Object.freeze({
     CONDITION: "condition",
@@ -34,7 +34,7 @@ export class QueryBuilder {
         this.query.table = table;
         return this
     }
-    _normalizeConditions(conditions, logicalOperator = null) {
+    #_normalizeConditions(conditions, logicalOperator = null) {
         if (!conditions || typeof conditions !== "object") {
             throw new Error("Conditions must be an object.");
         }
@@ -57,39 +57,51 @@ export class QueryBuilder {
             }
         });
     }
+    /**
+ * @param {Object|WhereCallback|null} conditions
+ * @returns {QueryBuilder}
+ */
+
     where(conditions) {
+        if (typeof conditions === "function") {
+            conditions(this)
+            return this
+        }
         validateConditions(conditions)
-        const normalized = this._normalizeConditions(conditions);
+        const normalized = this.#_normalizeConditions(conditions);
+
         this.query.where.push(...normalized)
         return this
     }
     andWhere(conditions) {
         validateConditions(conditions)
         this._ensureWhereExists()
-        const normalized = this._normalizeConditions(conditions, LogicalOperator.AND);
+        const normalized = this.#_normalizeConditions(conditions, LogicalOperator.AND);
         this.query.where.push(...normalized)
         return this
     }
     orWhere(conditions) {
         validateConditions(conditions)
-        this._ensureWhereExists()
+        this.#_ensureWhereExists()
 
-        const normalized = this._normalizeConditions(conditions, LogicalOperator.OR);
+        const normalized = this.#_normalizeConditions(conditions, LogicalOperator.OR);
         this.query.where.push(...normalized)
         return this
     }
 
-    orderBy(column, direction = SortDirection.ASC) {
-        validateOrderBy(column, direction)
+    // orderBy(column, direction = SortDirection.ASC) {
+    //     // if()
+    //     validateOrderBy(column, direction)
 
-        this.query.orderBy = {
-            column,
-            direction: direction.toUpperCase()
-        }
-        return this
-    }
+    //     this.query.orderBy = {
+    //         column,
+    //         direction: direction.toUpperCase()
+    //     }
+    //     return this
+    // }
     orderBy(ordersDirectionObject) {
-        const ordersDirection = Object.entries(ordersDirectionObject).map(
+        // console.log("ordersDirectionObject : ", ordersDirectionObject)
+        const ordersDirection = Object.entries(ordersDirectionObject?? {}).map(
             ([column, direction]) => {
                 const orderDirection = { column, direction }
                 validateOrderBy(orderDirection)
@@ -98,6 +110,10 @@ export class QueryBuilder {
         this.query.orderBy.push(...ordersDirection)
         return this
     }
+    // where(column,operator,value){
+
+    // }
+
     limit(limit) {
         if (limit !== null) {
             validateLimit(limit)
@@ -116,30 +132,31 @@ export class QueryBuilder {
 
         if (!callback || typeof callback !== "function")
             throw new Error("orWhereGroup() expects a callback function.")
-        console.log("orWhereGroup")
-        this._ensureWhereExists();
+        // console.log("orWhereGroup")
+        this.#_ensureWhereExists();
         const group = new QueryBuilder();
         callback(group)
-        console.log(group)
-        this._ensureGroupNotEmpty(group);
+        // console.log(group)
+        this.#_ensureGroupNotEmpty(group);
         this.query.where.push({
             type: TypeCondition.GROUP,
             logicalOperator: LogicalOperator.OR,
             conditions: group.query.where
         });
+        this.query.where = [{ type: "CONDITION", status: "available" }, { type: "GROUP", logicalOperator: "OR", conditions: [{}] }]
         return this
     }
     andWhereGroup(callback) {
         if (!callback || typeof callback !== "function")
             throw new Error("andWhereGroup() expects a callback function.")
 
-        this._ensureWhereExists();
+        this.#_ensureWhereExists();
         const group = new QueryBuilder();
         callback(group)
-        console.log(group)
+        // console.log(group)
 
-        this._ensureGroupNotEmpty(group);
-        console.log("test")
+        this.#_ensureGroupNotEmpty(group);
+        // console.log("test")
         this.query.where.push({
             type: TypeCondition.GROUP,
             logicalOperator: LogicalOperator.AND,
@@ -147,26 +164,26 @@ export class QueryBuilder {
         });
         return this
     }
-    _buildConditions(conditions, params) {
+    #_buildConditions(conditions, params) {
         return conditions.map(condition => {
 
             if (condition.type === TypeCondition.GROUP)
-                return this._buildGroup(condition, params);
+                return this.#_buildGroup(condition, params);
 
-            return this._buildCondition(condition, params)
+            return this.#_buildCondition(condition, params)
         }).join(' ');
     }
-    _buildGroup(group, params) {
-        console.log("build group :: ", group)
-        console.log("not test")
+    #_buildGroup(group, params) {
+        // console.log("build group :: ", group)
+        // console.log("not test")
         const { logicalOperator, conditions } = group
-        const innerSql = this._buildConditions(conditions, params)
+        const innerSql = this.#_buildConditions(conditions, params)
         return `${this.indentation}${logicalOperator} ( ${innerSql} )`
     }
-    _buildCondition(condition, params) {
+    #_buildCondition(condition, params) {
         const { logicalOperator, operator, column, value } = condition
         let sql = "";
-        console.log("build condition : ", condition)
+        // console.log("build condition : ", condition)
         if (logicalOperator)
             sql += `${logicalOperator} `
 
@@ -201,14 +218,14 @@ export class QueryBuilder {
 
         // console.log(this.)
         if (this.query.where.length > 0) {
-            const conditions = this._buildConditions(this.query.where, params);
+            const conditions = this.#_buildConditions(this.query.where, params);
 
             sql += (conditions.length ? `${this.indentation}WHERE ${conditions}` : "")
         }
         // ORDER BY
         if (this.query.orderBy.length) {
-            console.log(this.query.orderBy.length)
-            console.log(this.query.orderBy)
+            // console.log(this.query.orderBy.length)
+            // console.log(this.query.orderBy)
             const orderBy = this.query.orderBy.map(({ column, direction }) => `${column} ${direction}`).join(", ");
             sql += ` ${this.indentation}ORDER BY ${orderBy}`
         }
@@ -221,16 +238,16 @@ export class QueryBuilder {
         // OFFSET
         if (this.query.offset !== null) {
             sql += ` ${this.indentation}OFFSET ?`
-            params.push(this.query.limit);
+            params.push(this.query.offset);
         }
-        // console.log(params)
+        console.log(`sql : ${sql}\n params : ${params}`)
 
         return {
             sql,
             params
         }
     }
-    _ensureWhereExists() {
+    #_ensureWhereExists() {
 
         if (this.query.where.length === 0) {
             throw new Error(
@@ -238,8 +255,8 @@ export class QueryBuilder {
             );
         }
     }
-    _ensureGroupNotEmpty(group) {
-        console.log('Where group cannot be empty.', group)
+    #_ensureGroupNotEmpty(group) {
+        // console.log('Where group cannot be empty.', group)
         if (group.query.where.length === 0) {
             throw new Error(
                 "Where group cannot be empty."

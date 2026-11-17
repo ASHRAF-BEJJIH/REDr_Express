@@ -7,6 +7,14 @@ export function validateSelect(columns) {
             "select() expects a non-empty array."
         );
     }
+    if (columns.some(column => typeof column !== "string")) {
+        throw new Error(
+            "select() expects an array of column names."
+        );
+    }
+
+    if (columns.includes('*') && columns.length > 1)
+        throw new Error("select() cannot combine " * " with other columns.")
 }
 
 export function validateTable(table) {
