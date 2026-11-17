@@ -1,6 +1,6 @@
 
 export default class AuthService {
-    constructor(userRepository) {
+    constructor(userRepository ) {
         this.userRepository = userRepository;
     }
 
@@ -9,6 +9,7 @@ export default class AuthService {
     }
     async login({ email, password }) {
         console.log("Login called");
+        // this.userRepository.
         const user = await this.userRepository.findByEmail(email);
         console.log(user)
         if (!user) {
