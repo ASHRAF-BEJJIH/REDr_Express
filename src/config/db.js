@@ -13,6 +13,12 @@ class Database {
     getPool() {
         return this.pool;
     }
+    closePool() {
+        if(this.pool) {
+            this.pool.end()
+            console.log("Database connection pool closed.");
+        }
+    }
     async testConnection() {
         let connection;
         try {

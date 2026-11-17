@@ -1,4 +1,4 @@
-import { BaseRepository } from "../core/baseRepository.js";
+import { BaseRepository } from "../core/repository/baseRepository.js";
 
 export default class CarRepository extends BaseRepository {
     constructor(db) {
